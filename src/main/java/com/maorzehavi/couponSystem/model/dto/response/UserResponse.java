@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class UserResponse {
-
+private Long id;
     private String email;
     private ClientType clientType;
     private Set<RoleResponse> roles;

@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
@@ -25,7 +24,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var user = userService.getEntityByEmail(username);
         if (user.isPresent()) {
-            log.info("[UserDetailsService] User {} found", username);
             return user.map(SecurityUser::new)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 

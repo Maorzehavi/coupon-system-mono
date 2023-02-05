@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF (cross site request forgery)
                 .cors(Customizer.withDefaults()) // by default use a Bean by the name of corsConfigurationSource
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/index.html").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/index.html","/").permitAll()
                         .anyRequest()
                         .authenticated()
                 )

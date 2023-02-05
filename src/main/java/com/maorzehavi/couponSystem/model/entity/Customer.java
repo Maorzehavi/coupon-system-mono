@@ -26,7 +26,7 @@ public class Customer {
     private String lastName;
 
     @OneToOne
-    @JoinColumn(name = "email", referencedColumnName = "email")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
     @ManyToMany

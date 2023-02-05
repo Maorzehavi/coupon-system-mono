@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
-@Slf4j
 public class SecurityUser implements UserDetails {
 
     private final User user;
@@ -29,7 +28,6 @@ public class SecurityUser implements UserDetails {
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         roles.forEach(role -> grantedAuthorities.add(role::getRole));
         authorities.forEach(authority -> grantedAuthorities.add(authority::getAuthority));
-        grantedAuthorities.forEach(grantedAuthority -> log.info("Granted authority: {}", grantedAuthority.getAuthority()));
         return grantedAuthorities;
     }
 

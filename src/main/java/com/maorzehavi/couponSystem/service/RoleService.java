@@ -17,6 +17,8 @@ public interface RoleService {
     Optional<RoleResponse> getRole(Long id);
     Optional<RoleResponse> getRole(String role);
 
+    Optional<Set<RoleResponse>> getAllRoles();
+
     Optional<RoleResponse> createRole(RoleRequest roleRequest);
 
     Optional<RoleResponse> updateRole(Long id, RoleRequest roleRequest);

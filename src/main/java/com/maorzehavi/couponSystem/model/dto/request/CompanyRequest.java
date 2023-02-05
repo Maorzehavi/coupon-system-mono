@@ -1,6 +1,7 @@
 package com.maorzehavi.couponSystem.model.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -14,4 +15,5 @@ public class CompanyRequest {
     private String name;
 
     private String phoneNumber;
+
 }

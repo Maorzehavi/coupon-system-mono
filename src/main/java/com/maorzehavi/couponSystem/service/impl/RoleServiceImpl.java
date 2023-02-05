@@ -55,6 +55,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public Optional<Set<RoleResponse>> getAllRoles() {
+        return Optional.of(roleRepository.findAll().stream().map(this::mapToRoleResponse).collect(Collectors.toSet()));
+    }
+
+    @Override
     @Transactional
     @Modifying
     public Optional<RoleResponse> createRole(RoleRequest roleRequest) {

@@ -1,6 +1,7 @@
 package com.maorzehavi.couponSystem.controller;
 
 import com.maorzehavi.couponSystem.model.ClientType;
+import com.maorzehavi.couponSystem.model.dto.request.ClientRequest;
 import com.maorzehavi.couponSystem.model.dto.request.CompanyRequest;
 import com.maorzehavi.couponSystem.model.dto.request.UserRequest;
 import com.maorzehavi.couponSystem.model.dto.response.CompanyResponse;
@@ -19,14 +20,8 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    private final UserService userService;
-
-    private final CompanyService companyService;
-
-    public AuthenticationController(AuthenticationService authenticationService, UserService userService, CompanyService companyService) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.userService = userService;
-        this.companyService = companyService;
     }
 
     @PostMapping("/login")
@@ -49,11 +44,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register-company")
-    public ResponseEntity<?> createCompany(@RequestBody CompanyRequest companyRequest,
-                                           @RequestBody UserRequest request){
-        User user = userService.createUser(request, ClientType.COMPANY).map(userService::mapToUser).orElseThrow();
-        Optional<CompanyResponse> company = companyService.createCompany(companyRequest, user);
-        return ResponseEntity.ok(company);
+    public ResponseEntity<?> registerCompany(@RequestBody ClientRequest<CompanyRequest> request){
+        try{
+            return ResponseEntity.ok(authenticationService.registerCompany(request));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 }

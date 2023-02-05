@@ -1,15 +1,19 @@
 package com.maorzehavi.couponSystem.service.impl;
 
+import com.maorzehavi.couponSystem.exception.SystemException;
+import com.maorzehavi.couponSystem.model.ClientType;
+import com.maorzehavi.couponSystem.model.dto.request.ClientRequest;
 import com.maorzehavi.couponSystem.model.dto.request.CompanyRequest;
 import com.maorzehavi.couponSystem.model.dto.response.CompanyResponse;
 import com.maorzehavi.couponSystem.model.entity.Company;
-import com.maorzehavi.couponSystem.model.entity.User;
 import com.maorzehavi.couponSystem.repository.CompanyRepository;
 import com.maorzehavi.couponSystem.service.CompanyService;
+import com.maorzehavi.couponSystem.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.lang.NonNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +22,14 @@ public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
 
-    public CompanyServiceImpl(CompanyRepository companyRepository) {
+    private final UserService userService; // this will be a webflux service
+
+
+    public CompanyServiceImpl(CompanyRepository companyRepository,
+                              @Lazy UserService userService) {
         this.companyRepository = companyRepository;
+
+        this.userService = userService;
     }
 
     @Override
@@ -48,26 +58,38 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Optional<CompanyResponse> createCompany(@Valid CompanyRequest companyRequest,
-                                                   @NonNull User user) {
-        var company = mapToCompany(companyRequest);
-        company.setUser(user);
-        company.setIsActive(false);
-        return Optional.of(mapToCompanyResponse(companyRepository.save(company)));
+    public Optional<Company> getCompanyEntityByEmail(String email) {
+        return companyRepository.getCompanyByUserEmail(email);
     }
 
     @Override
-    public Optional<CompanyResponse> updateCompany(Long id,
-                                                   @Valid CompanyRequest companyRequest) {
-        var company = getCompanyEntity(id).orElseThrow();
-        company.setName(companyRequest.getName());
-        company.setPhoneNumber(companyRequest.getPhoneNumber());
+    public Optional<CompanyResponse> createCompany(@Valid ClientRequest<CompanyRequest> companyRequest) {
+        var company = mapToCompany(companyRequest.getData());
+        var user = userService.createUser(companyRequest.getUser(), ClientType.COMPANY).map(userService::mapToUser)
+                .orElseThrow(() -> new SystemException("User creation failed")); // in the future, this will be with webflux
+        company.setUser(user);
+        company.setIsActive(false);
+        return Optional.of(mapToCompanyResponse(companyRepository.save(company)));
+
+    }
+
+    @Override
+    public Optional<CompanyResponse> updateCompany(@Valid ClientRequest<CompanyRequest> companyRequest,
+                                                   Principal principal) {
+        var user = userService.updateUser(companyRequest.getUser(), principal).map(userService::mapToUser)
+                .orElseThrow(() -> new SystemException("User update failed"));
+        var company = getCompanyEntityByEmail(principal.getName()).orElseThrow();
+        company.setName(companyRequest.getData().getName());
+        company.setPhoneNumber(companyRequest.getData().getPhoneNumber());
+        company.setUser(user);
         return Optional.of(mapToCompanyResponse(companyRepository.save(company)));
     }
 
     @Override
     public Optional<CompanyResponse> deleteCompany(Long id) {
-        var company = getCompanyEntity(id).orElseThrow();
+        var company = getCompanyEntity(id).orElseThrow(
+                ()-> new SystemException("Company not found")
+        );
         companyRepository.delete(company);
         return Optional.of(mapToCompanyResponse(company));
     }

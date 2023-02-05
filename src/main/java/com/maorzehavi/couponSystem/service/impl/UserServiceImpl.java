@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,6 +33,11 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public Optional<Long> getIdByEmail(String email) {
+        return userRepository.getIdByEmail(email);
     }
 
     @Override
@@ -61,8 +67,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserResponse> updateUser(UserRequest userRequest) {
-        return Optional.empty();
+    public Optional<UserResponse> updateUser(UserRequest userRequest, Principal principal) {
+        var user = getEntityByEmail(principal.getName());
+        if (user.isPresent()) {
+            user.get().setEmail(userRequest.getEmail());
+            user.get().setPassword(passwordEncoder.encode(userRequest.getPassword()));
+            return Optional.of(mapToUserResponse(userRepository.save(user.get())));
+        }
+        throw new SystemException("User with email: " + principal.getName() + " not found");
     }
 
     @Override
@@ -84,6 +96,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse mapToUserResponse(User user) {
         var roles = user.getRoles().stream().map(roleService::mapToRoleResponse).collect(Collectors.toSet());
         return UserResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .clientType(user.getClientType())
                 .roles(roles)
@@ -94,6 +107,7 @@ public class UserServiceImpl implements UserService {
     public User mapToUser(UserResponse userResponse) {
         var roles = userResponse.getRoles().stream().map(roleService::mapToRole).collect(Collectors.toSet());
         return User.builder()
+                .id(userResponse.getId())
                 .email(userResponse.getEmail())
                 .clientType(userResponse.getClientType())
                 .roles(roles)

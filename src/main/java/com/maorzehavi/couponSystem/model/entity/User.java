@@ -19,8 +19,9 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Entity
 public class User {
     @Id
-    @Column(name = "email", length = 200)
-    // if the length is more than 200 it will throw an exception "Specified key was too long; max key length is 1000 bytes"
+    @GeneratedValue(strategy = IDENTITY)
+    private Long id;
+
     private String email;
 
     private String password;
@@ -32,7 +33,7 @@ public class User {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_email"),
+            joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
