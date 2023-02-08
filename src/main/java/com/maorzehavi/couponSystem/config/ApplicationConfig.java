@@ -40,8 +40,4 @@ public class ApplicationConfig {
         return config.getAuthenticationManager();
     }
 
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 }

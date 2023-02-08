@@ -3,6 +3,7 @@ package com.maorzehavi.couponSystem.controller;
 import com.maorzehavi.couponSystem.model.ClientType;
 import com.maorzehavi.couponSystem.model.dto.request.ClientRequest;
 import com.maorzehavi.couponSystem.model.dto.request.CompanyRequest;
+import com.maorzehavi.couponSystem.model.dto.request.CustomerRequest;
 import com.maorzehavi.couponSystem.model.dto.request.UserRequest;
 import com.maorzehavi.couponSystem.model.dto.response.CompanyResponse;
 import com.maorzehavi.couponSystem.model.entity.User;
@@ -47,6 +48,15 @@ public class AuthenticationController {
     public ResponseEntity<?> registerCompany(@RequestBody ClientRequest<CompanyRequest> request){
         try{
             return ResponseEntity.ok(authenticationService.registerCompany(request));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/register-customer")
+    public ResponseEntity<?> registerCustomer(@RequestBody ClientRequest<CustomerRequest> request){
+        try{
+            return ResponseEntity.ok(authenticationService.registerCustomer(request));
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -17,8 +17,6 @@ public interface CompanyService {
 
     Optional<Long> getIdByEmail(String email);
 
-    Optional<Long> getIdByUserId(Long userId);
-
     Optional<CompanyResponse> getCompany(Long id);
 
     Optional<Company> getCompanyEntity(Long id);
@@ -40,8 +38,6 @@ public interface CompanyService {
 
     List<CompanyResponse> getAllCompanies();
 
-    Boolean isCompanyActive(Long id);
-
     @Modifying
     @Transactional
     void activateCompany(Long id);
@@ -54,7 +50,5 @@ public interface CompanyService {
     CompanyResponse mapToCompanyResponse(Company company);
 
     Company mapToCompany(CompanyRequest companyRequest);
-
-    Company mapToCompany(CompanyResponse companyResponse);
 
 }

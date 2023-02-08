@@ -6,44 +6,24 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
-    Optional<Coupon> findByTitle(String title);
 
-    Optional<Coupon> findCouponByTitleAndCompanyId(String title, Long id);
-
-    @Query("select c from Coupon c join fetch c.category where c.id = :id")
-    Optional<Coupon> findByIdWithCategory(Long id);
-
-    @Query("select c from Coupon c join fetch c.company where c.id = :id")
-    Optional<Coupon> findByIdWithCompany(Long id);
-
-    @Query("select c from Coupon c join fetch c.company join fetch c.category where c.id = :id")
-    Optional<Coupon> findByIdWithCompanyAndCategory(Long id);
-
-    @Query("select c from Coupon c left join c.category where c.category in (select c from Category c where c.id = :categoryId)")
+    @Transactional
     Optional<List<Coupon>> findAllByCategoryId(Long categoryId);
 
-    //    @Query("select c from Coupon c join fetch c.company  where c.company in (select c from Company c where c.id = :companyId)")
-//@Query("select c from Coupon c where c.company.id = ?1")
+    @Transactional
     Optional<List<Coupon>> findAllByCompanyId(Long companyId);
-
-    @Transactional
-    @Query("delete from Coupon c where c.category in (select c from Category c where c.id = :categoryId)")
-    @Modifying
-    void deleteAllByCategoryId(Long categoryId);
-
-    @Transactional
-    @Query("delete from Coupon c where c.company in (select c from Company c where c.id = :id)")
-    @Modifying
-    void deleteAllByCompanyId(Long id);
 
     @Modifying
     @Transactional
     @Query("update Coupon c set c.amount = c.amount + :amount where c.id = :id")
     void updateCouponAmount(Long id, Integer amount);
+
+    Optional<List<Coupon>> findAllByTitle(String title);
 
     @Query("select c from Coupon c where c.price <= :maxPrice")
     Optional<List<Coupon>> findAllByPriceLessThan(Double maxPrice);
@@ -57,9 +37,26 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     void deleteAllCustomersCouponsByCouponId(Long couponId);
 
     @Transactional
-    @Modifying
-    @Query(nativeQuery = true, value = "delete from customers_coupons where customer_id = :customerId")
-    void deleteAllCustomersCouponsByCustomerId(Long customerId);
-
     Boolean existsByTitleAndCompanyId(String title, Long companyId);
+
+    @Query("select c from Coupon c where c.endDate < ?1")
+    Optional<List<Coupon>> findAllByEndDateBefore(LocalDate localDate);
+
+    @Transactional
+    @Query(nativeQuery = true,
+            value = "select * from customers_coupons where customer_id = :customerId")
+    Optional<List<Coupon>> findAllByCustomerId(Long customerId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true,
+            value = "insert into customers_coupons (customer_id, coupon_id) values (:customerId, :couponId)")
+    void addCouponToCustomer(Long couponId, Long customerId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true,
+            value = "delete from customers_coupons where customer_id = :customerId and coupon_id = :couponId limit :amount")
+    void deleteCouponFromCustomer(Long couponId, Long customerId, Integer amount);
+
 }

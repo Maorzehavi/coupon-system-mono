@@ -14,8 +14,6 @@ import java.util.List;
 @Builder
 public class PurchaseRequest {
 
-    @NotNull(message = "Customer id is mandatory")
-    private Long customerId;
 
     private List<Long> couponsIds;
 }

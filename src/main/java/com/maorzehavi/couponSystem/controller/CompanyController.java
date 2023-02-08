@@ -3,11 +3,9 @@ package com.maorzehavi.couponSystem.controller;
 import com.maorzehavi.couponSystem.model.dto.request.ClientRequest;
 import com.maorzehavi.couponSystem.model.dto.request.CompanyRequest;
 import com.maorzehavi.couponSystem.service.CompanyService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 
@@ -42,23 +40,49 @@ public class CompanyController {
 
         }
     }
-//    @PutMapping()
-//    @PreAuthorize("hasAnyRole('ROLE_COMPANY')")
-//    public ResponseEntity<?> updateCompany( @RequestBody CompanyRequest companyRequest, Principal principal) {
-//        var email = principal.getName();
-//       var id = companyService.getIdByEmail(email).orElseThrow(
-//                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
-//        return ResponseEntity.ok(companyService.updateCompany(id, companyRequest).orElseThrow(
-//                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request")
-//        ));
-//    }
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_COMPANY')")
     public ResponseEntity<?> deleteCompany(@PathVariable Long id) {
-        var companyResponse = companyService.deleteCompany(id);
-        return ResponseEntity.ok(companyResponse.orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company not found")
-        ));
+        try {
+            var companyResponse = companyService.deleteCompany(id);
+            return ResponseEntity.ok(companyResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasAnyRole('ROLE_COMPANY')")
+    public ResponseEntity<?> deleteCompany(Principal principal) {
+        long id = companyService.getIdByEmail(principal.getName()).orElseThrow();
+        return deleteCompany(id);
+    }
+
+    @PutMapping("/activate/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> activateCompany(@PathVariable Long id) {
+        try {
+            companyService.activateCompany(id);
+            return ResponseEntity.ok().body("Company activated");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/deactivate/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> deactivateCompany(@PathVariable Long id) {
+        try {
+            companyService.deactivateCompany(id);
+            return ResponseEntity.ok().body("Company deactivated");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/test/{id}")
+    public ResponseEntity<?> test(@PathVariable Long id) {
+        return ResponseEntity.ok().body("test"+id);
     }
 }

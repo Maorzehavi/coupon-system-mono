@@ -37,8 +37,5 @@ public class CouponRequest {
     private String image;
 
     @NotNull(message = "Category id is mandatory")
-    private Long companyId;
-
-    @NotNull(message = "Category id is mandatory")
     private Long categoryId;
 }

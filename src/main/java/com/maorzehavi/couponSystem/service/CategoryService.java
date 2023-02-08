@@ -27,7 +27,7 @@ public interface CategoryService {
     @Transactional
     Optional<Boolean> deleteCategory(Long id);
 
-    Optional<List<CategoryResponse>> getAllCategories();
+    List<CategoryResponse> getAllCategories();
 
 
     Category mapToCategory(CategoryResponse categoryResponse);

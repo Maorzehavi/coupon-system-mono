@@ -8,6 +8,7 @@ import com.maorzehavi.couponSystem.model.dto.response.CompanyResponse;
 import com.maorzehavi.couponSystem.model.entity.Company;
 import com.maorzehavi.couponSystem.repository.CompanyRepository;
 import com.maorzehavi.couponSystem.service.CompanyService;
+import com.maorzehavi.couponSystem.service.CouponService;
 import com.maorzehavi.couponSystem.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Lazy;
@@ -22,12 +23,16 @@ public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
 
+    private final CouponService couponService;  // this will be webflux
+
     private final UserService userService; // this will be a webflux service
 
 
     public CompanyServiceImpl(CompanyRepository companyRepository,
+                              @Lazy CouponService couponService,
                               @Lazy UserService userService) {
         this.companyRepository = companyRepository;
+        this.couponService = couponService;
 
         this.userService = userService;
     }
@@ -39,13 +44,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public Optional<Long> getIdByEmail(String email) {
-        return companyRepository.getIdByCompanyEmail(email);
+        return companyRepository.getIdByEmail(email);
     }
 
-    @Override
-    public Optional<Long> getIdByUserId(Long userId) {
-        return companyRepository.getIdByUserId(userId);
-    }
 
     @Override
     public Optional<CompanyResponse> getCompany(Long id) {
@@ -59,12 +60,15 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public Optional<Company> getCompanyEntityByEmail(String email) {
-        return companyRepository.getCompanyByUserEmail(email);
+        return companyRepository.getCompanyByEmail(email);
     }
 
     @Override
     public Optional<CompanyResponse> createCompany(@Valid ClientRequest<CompanyRequest> companyRequest) {
         var company = mapToCompany(companyRequest.getData());
+        if (companyRepository.existsByName(company.getName())) {
+            throw new SystemException("Company name already exists");
+        }
         var user = userService.createUser(companyRequest.getUser(), ClientType.COMPANY).map(userService::mapToUser)
                 .orElseThrow(() -> new SystemException("User creation failed")); // in the future, this will be with webflux
         company.setUser(user);
@@ -88,8 +92,10 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public Optional<CompanyResponse> deleteCompany(Long id) {
         var company = getCompanyEntity(id).orElseThrow(
-                ()-> new SystemException("Company not found")
+                () -> new SystemException("Company not found")
         );
+        userService.deleteUser(company.getUser().getId());
+        couponService.deleteAllByCompanyId(id);
         companyRepository.delete(company);
         return Optional.of(mapToCompanyResponse(company));
     }
@@ -102,30 +108,13 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Boolean isCompanyActive(Long id) {
-        return companyRepository.isActive(id).orElseThrow();
-    }
-
-    @Override
     public void activateCompany(Long id) {
-        try {
-            var company = getCompanyEntity(id).orElseThrow();
-            company.setIsActive(true);
-            companyRepository.save(company);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        companyRepository.updateCompanyActiveStatus(id, true);
     }
 
     @Override
     public void deactivateCompany(Long id) {
-        try {
-            var company = getCompanyEntity(id).orElseThrow();
-            company.setIsActive(false);
-            companyRepository.save(company);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        companyRepository.updateCompanyActiveStatus(id, false);
     }
 
     @Override
@@ -147,13 +136,4 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
-    @Override
-    public Company mapToCompany(CompanyResponse companyResponse)     {
-        return Company.builder()
-                .id(companyResponse.getId())
-                .name(companyResponse.getName())
-                .isActive(companyResponse.getIsActive())
-                .phoneNumber(companyResponse.getPhoneNumber())
-                .build();
-    }
 }

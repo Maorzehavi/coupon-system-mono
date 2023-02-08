@@ -78,8 +78,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserResponse> deleteUser(String email) {
-        return Optional.empty();
+    public Optional<UserResponse> deleteUser(Long id) {
+        var user = userRepository.findById(id).orElseThrow(
+                ()-> new SystemException("Not user found with id '"+id+"'")
+        );
+        userRepository.delete(user);
+        return Optional.of(mapToUserResponse(user));
     }
 
     @Override

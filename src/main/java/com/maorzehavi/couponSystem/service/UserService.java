@@ -29,7 +29,7 @@ public interface UserService {
 
     @Transactional
     @Modifying
-    Optional<UserResponse> deleteUser(String email);
+    Optional<UserResponse> deleteUser(Long id);
 
     Optional<User> getEntityByEmail(String email);
 

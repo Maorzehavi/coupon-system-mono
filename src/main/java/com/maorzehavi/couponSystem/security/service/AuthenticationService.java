@@ -5,11 +5,13 @@ import com.maorzehavi.couponSystem.exception.SystemException;
 import com.maorzehavi.couponSystem.model.ClientType;
 import com.maorzehavi.couponSystem.model.dto.request.ClientRequest;
 import com.maorzehavi.couponSystem.model.dto.request.CompanyRequest;
+import com.maorzehavi.couponSystem.model.dto.request.CustomerRequest;
 import com.maorzehavi.couponSystem.model.dto.request.UserRequest;
 import com.maorzehavi.couponSystem.model.dto.response.AuthenticationResponse;
 import com.maorzehavi.couponSystem.model.entity.User;
 import com.maorzehavi.couponSystem.security.user.SecurityUser;
 import com.maorzehavi.couponSystem.service.CompanyService;
+import com.maorzehavi.couponSystem.service.CustomerService;
 import com.maorzehavi.couponSystem.service.UserService;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -26,6 +28,8 @@ public class AuthenticationService {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final CompanyService companyService;
+
+    private final CustomerService customerService;
 
 
     public AuthenticationResponse authenticate(@Valid UserRequest request){
@@ -59,6 +63,15 @@ public class AuthenticationService {
 
     public AuthenticationResponse registerCompany(@Valid ClientRequest<CompanyRequest> request) {
         companyService.createCompany(request);
+        var user = userService.getEntityByEmail(request.getUser().getEmail()).orElseThrow();
+        var token = jwtService.generateToken(new SecurityUser(user));
+        return AuthenticationResponse.builder()
+                .token(token)
+                .build();
+    }
+
+    public AuthenticationResponse registerCustomer(@Valid ClientRequest<CustomerRequest> request) {
+        customerService.createCustomer(request);
         var user = userService.getEntityByEmail(request.getUser().getEmail()).orElseThrow();
         var token = jwtService.generateToken(new SecurityUser(user));
         return AuthenticationResponse.builder()

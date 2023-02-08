@@ -9,8 +9,10 @@ import lombok.*;
 @Builder
 public class CustomerRequest {
 
-    @NotBlank(message = "name is mandatory")
-    private String fullName;
-    @NonNull
-    private UserRequest user;
+    @NotBlank(message = "first name is mandatory")
+    private String firstName;
+
+    @NotBlank(message = "last name is mandatory")
+    private String lastName;
+
 }
