@@ -8,30 +8,37 @@ import com.maorzehavi.couponSystem.model.entity.Purchase;
 import com.maorzehavi.couponSystem.repository.PurchaseRepository;
 import com.maorzehavi.couponSystem.service.CouponService;
 import com.maorzehavi.couponSystem.service.CustomerService;
+import com.maorzehavi.couponSystem.service.EmailService;
 import com.maorzehavi.couponSystem.service.PurchaseService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
-
+    @Qualifier("customerServiceImpl")
     private final CustomerService customerService;
-
+    @Qualifier("couponServiceImpl")
     private final CouponService couponService;
+    @Qualifier("emailServiceImpl")
+    private final EmailService emailService;
 
     public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
                                @Lazy CustomerService customerService,
-                               @Lazy CouponService couponService) {
+                               @Lazy CouponService couponService,
+                               @Lazy EmailService emailService) {
         this.purchaseRepository = purchaseRepository;
         this.customerService = customerService;
         this.couponService = couponService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -50,7 +57,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         int amount = coupons.size();
         coupons.forEach(coupon -> {
             couponService.addCouponToCustomer(coupon.getId(), customer.getId());
-            couponService.updateCouponAmount(coupon.getId(),  - 1);
+            couponService.updateCouponAmount(coupon.getId(), -1);
         });
         var purchase = Purchase.builder()
                 .totalPrice(totalPrice)
@@ -59,7 +66,9 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .customer(customer)
                 .coupons(coupons)
                 .build();
-        return Optional.of(mapToPurchaseResponse(purchaseRepository.save(purchase)));
+        var purchaseResponse = Optional.of(mapToPurchaseResponse(purchaseRepository.save(purchase)));
+        emailService.sendEmail(customerEmail, "Purchase confirmation", mapPurchaseResponseToString(purchaseResponse.get()));
+        return purchaseResponse;
     }
 
     @Override
@@ -112,5 +121,22 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .coupons(coupons)
                 .customer(customer)
                 .build();
+    }
+
+    private String mapPurchaseResponseToString(PurchaseResponse purchaseResponse) {
+        Stream<String> stringStream = purchaseResponse.getCoupons().stream().map(c -> {
+            String data = "Coupon details:\n" +
+                    "Id: " + c.getId() + "\n" +
+                    "Title: " + c.getTitle() + "\n" +
+                    "Description: " + c.getDescription() + "\n" +
+                    "Price: " + c.getPrice() + "\n";
+            return data;
+
+        });
+        return "Purchase details:\n" +
+                "Timestamp: " + purchaseResponse.getTimestamp() + "\n" +
+                "Total price: " + purchaseResponse.getTotalPrice() + "\n" +
+                "Amount: " + purchaseResponse.getAmount() + "\n" +
+                stringStream.reduce("", String::concat);
     }
 }

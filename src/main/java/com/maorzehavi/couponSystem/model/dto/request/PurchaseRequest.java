@@ -14,6 +14,5 @@ import java.util.List;
 @Builder
 public class PurchaseRequest {
 
-
     private List<Long> couponsIds;
 }

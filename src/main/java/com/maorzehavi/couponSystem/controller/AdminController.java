@@ -19,7 +19,7 @@ public class AdminController {
 
     @PostMapping("/add-user")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> register(@RequestBody UserRequest request, @RequestBody ClientType clientType){
+    public ResponseEntity<?> addUser(@RequestBody UserRequest request, @RequestBody ClientType clientType){
         try{
             return ResponseEntity.ok((authenticationService.register(request, clientType)));
         }catch (Exception e){

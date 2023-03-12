@@ -9,8 +9,10 @@ import com.maorzehavi.couponSystem.model.entity.Customer;
 import com.maorzehavi.couponSystem.repository.CustomerRepository;
 import com.maorzehavi.couponSystem.service.CouponService;
 import com.maorzehavi.couponSystem.service.CustomerService;
+import com.maorzehavi.couponSystem.service.EmailService;
 import com.maorzehavi.couponSystem.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +24,21 @@ import java.util.Optional;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
-
+    @Qualifier("userServiceImpl")
     private final UserService userService;
-
+    @Qualifier("couponServiceImpl")
     private final CouponService couponService;
+    @Qualifier("emailServiceImpl")
+    private final EmailService emailService;
 
     public CustomerServiceImpl(CustomerRepository customerRepository,
                                @Lazy UserService userService,
-                               @Lazy CouponService couponService) {
+                               @Lazy CouponService couponService,
+                               @Lazy EmailService emailService) {
         this.customerRepository = customerRepository;
         this.userService = userService;
         this.couponService = couponService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -61,7 +67,14 @@ public class CustomerServiceImpl implements CustomerService {
         var user = userService.createUser(customerRequest.getUser(), ClientType.CUSTOMER).map(userService::mapToUser)
                 .orElseThrow(() -> new SystemException("Failed to create user"));
         customer.setUser(user);
-        return Optional.of(mapToCustomerResponse(customerRepository.save(customer)));
+        var customerResponse = Optional.of(mapToCustomerResponse(customerRepository.save(customer)));
+        emailService.sendEmail(customerResponse.get().getEmail(), "Welcome to Coupon System",
+                "Hello " + customerResponse.get().getFirstName() + " " + customerResponse.get().getLastName() + ",\n" +
+                        "Welcome to Coupon System, we are happy to have you as a customer.\n" +
+                        "You can now start purchasing coupons and enjoy the benefits of our system.\n" +
+                        "Best regards,\n" +
+                        "Coupon System Team");
+        return customerResponse;
 
 
     }
@@ -81,9 +94,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Optional<CustomerResponse> deleteCustomer(Long id) {
         var customer = getCustomerEntity(id).orElseThrow();
-        couponService.deleteAllByCustomerId(id);
+        couponService.deleteAllCustomerCouponsByCustomerId(id);
         userService.deleteUser(customer.getUser().getId());
         customerRepository.delete(customer);
+        emailService.sendEmail(customer.getUser().getEmail(), "Goodbye from Coupon System",
+                "Hello " + customer.getFirstName() + " " + customer.getLastName() + ",\n" +
+                        "We are sorry to see you go, we hope you enjoyed your time with us.\n" +
+                        "Best regards,\n" +
+                        "Coupon System Team");
         return Optional.of(mapToCustomerResponse(customer));
     }
 

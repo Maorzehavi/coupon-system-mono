@@ -9,8 +9,10 @@ import com.maorzehavi.couponSystem.model.entity.Company;
 import com.maorzehavi.couponSystem.repository.CompanyRepository;
 import com.maorzehavi.couponSystem.service.CompanyService;
 import com.maorzehavi.couponSystem.service.CouponService;
+import com.maorzehavi.couponSystem.service.EmailService;
 import com.maorzehavi.couponSystem.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +24,23 @@ import java.util.Optional;
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
-
+    @Qualifier("couponServiceImpl")
     private final CouponService couponService;  // this will be webflux
-
+    @Qualifier("userServiceImpl")
     private final UserService userService; // this will be a webflux service
+    @Qualifier("emailServiceImpl")
+    private final EmailService emailService;
 
 
     public CompanyServiceImpl(CompanyRepository companyRepository,
                               @Lazy CouponService couponService,
-                              @Lazy UserService userService) {
+                              @Lazy UserService userService,
+                              @Lazy EmailService emailService) {
         this.companyRepository = companyRepository;
         this.couponService = couponService;
 
         this.userService = userService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -73,7 +79,15 @@ public class CompanyServiceImpl implements CompanyService {
                 .orElseThrow(() -> new SystemException("User creation failed")); // in the future, this will be with webflux
         company.setUser(user);
         company.setIsActive(false);
-        return Optional.of(mapToCompanyResponse(companyRepository.save(company)));
+        var companyResponse = Optional.of(mapToCompanyResponse(companyRepository.save(company)));
+        emailService.sendEmail(user.getEmail(),
+                "Company registration",
+                "Hello " + company.getName() + ",\n" +
+                        "Welcome to Coupon System, we are happy to have you as a company.\n" +
+                        "To activate your account please replay to this email.\n" +
+                        "Best regards,\n" +
+                        "Coupon System Team");
+        return companyResponse;
 
     }
 
@@ -97,6 +111,12 @@ public class CompanyServiceImpl implements CompanyService {
         userService.deleteUser(company.getUser().getId());
         couponService.deleteAllByCompanyId(id);
         companyRepository.delete(company);
+        emailService.sendEmail(company.getUser().getEmail(),
+                "Company deletion",
+                "Hello " + company.getName() + ",\n" +
+                        "We are sorry to see you go, we hope you enjoyed our services.\n" +
+                        "Best regards,\n" +
+                        "Coupon System Team");
         return Optional.of(mapToCompanyResponse(company));
     }
 

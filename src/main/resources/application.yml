@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/db_coupons?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/db_coupons2?createDatabaseIfNotExist=true
     username: root
     password: root
   jpa:
@@ -11,6 +11,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5Dialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: maorzehavi1@gmail.com
+    password: ovttukltduirkmjh
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 jwt:
   secret: 576D5A7134743777217A25432646294A404E635266556A586E3272357538782F

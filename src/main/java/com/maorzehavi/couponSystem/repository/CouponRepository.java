@@ -44,7 +44,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     @Transactional
     @Query(nativeQuery = true,
-            value = "select * from customers_coupons where customer_id = :customerId")
+            value = "select * from coupons c where c.id in (select coupon_id from customers_coupons where customer_id = :customerId)    ")
     Optional<List<Coupon>> findAllByCustomerId(Long customerId);
 
     @Transactional

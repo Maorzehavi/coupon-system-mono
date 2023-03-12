@@ -48,7 +48,7 @@ public interface CouponService {
 
     @Transactional
     @Modifying
-    void deleteAllByCustomerId(Long id);
+    void deleteAllCustomerCouponsByCustomerId(Long id);
 
     @Transactional
     @Modifying

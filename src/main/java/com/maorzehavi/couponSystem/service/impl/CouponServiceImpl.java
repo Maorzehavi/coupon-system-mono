@@ -144,12 +144,12 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public void deleteAllByCustomerId(Long customerId) {
+    public void deleteAllCustomerCouponsByCustomerId(Long customerId) {
         var coupons = couponRepository.findAllByCustomerId(customerId);
         if (coupons.isEmpty()) {
             throw new SystemException("Not found coupons for customer with id: " + customerId);
         }
-        coupons.get().forEach(coupon -> deleteCoupon(coupon.getId()));
+        coupons.get().forEach(coupon -> deleteCouponFromCustomer(coupon.getId(), customerId, coupon.getAmount()));
     }
 
     @Override
