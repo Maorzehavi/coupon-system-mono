@@ -46,5 +46,14 @@ public class CouponController {
         }
     }
 
+    @GetMapping("/company")
+    public ResponseEntity<?> getCouponsByCompany(Principal principal){
+        try{
+            return ResponseEntity.ok(couponService.getAllCouponsByCompany(principal.getName()));
+        } catch (Exception e){
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }

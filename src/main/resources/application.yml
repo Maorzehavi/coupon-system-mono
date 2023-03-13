@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/db_coupons2?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/db_coupons?createDatabaseIfNotExist=true
     username: root
     password: root
   jpa:
@@ -16,6 +16,7 @@ spring:
     port: 587
     username: maorzehavi1@gmail.com
     password: ovttukltduirkmjh
+#    this password will change at 1.5.2023 please contact me for the new password
     properties:
       mail:
         smtp:

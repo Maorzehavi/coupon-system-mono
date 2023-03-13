@@ -196,7 +196,8 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public List<CouponResponse> getAllCouponsByCompanyId(Long companyId) {
+    public List<CouponResponse> getAllCouponsByCompany(String companyEmail) {
+        long companyId = companyService.getIdByEmail(companyEmail).orElseThrow(() -> new SystemException("Company with email '" + companyEmail + "' not found"));
         var coupons = couponRepository.findAllByCompanyId(companyId)
                 .orElseThrow(() -> new SystemException("no coupons found for company with id '" + companyId + "'"));
         return coupons.stream().map(this::mapToCouponResponse).collect(Collectors.toList());

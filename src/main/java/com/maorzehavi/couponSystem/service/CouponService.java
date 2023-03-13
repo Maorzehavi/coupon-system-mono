@@ -66,7 +66,7 @@ public interface CouponService {
 
     List<CouponResponse> getAllCouponsByCategory(String categoryName);
 
-    List<CouponResponse> getAllCouponsByCompanyId(Long companyId);
+    List<CouponResponse> getAllCouponsByCompany(String companyEmail);
 
 
     Coupon mapToCoupon(CouponRequest couponRequest);

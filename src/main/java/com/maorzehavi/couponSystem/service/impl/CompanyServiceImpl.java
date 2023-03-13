@@ -129,12 +129,20 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void activateCompany(Long id) {
-        companyRepository.updateCompanyActiveStatus(id, true);
+       try{
+           companyRepository.updateCompanyActiveStatus(id, true);
+       } catch (Exception e) {
+           throw new SystemException("Company activation failed");
+       }
     }
 
     @Override
     public void deactivateCompany(Long id) {
-        companyRepository.updateCompanyActiveStatus(id, false);
+        try{
+            companyRepository.updateCompanyActiveStatus(id, false);
+        } catch (Exception e) {
+            throw new SystemException("Company deactivation failed");
+        }
     }
 
     @Override

@@ -15,6 +15,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     @Transactional
     Optional<List<Coupon>> findAllByCategoryId(Long categoryId);
 
+    @Query("select c from Coupon c where c.company.id = ?1")
     @Transactional
     Optional<List<Coupon>> findAllByCompanyId(Long companyId);
 
