@@ -17,6 +17,7 @@ public class ExpiredCouponRemover {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void removeExpiredCoupons() {
+        System.out.println("Removing expired coupons");
         couponService.deleteExpiredCoupons();
     }
 }

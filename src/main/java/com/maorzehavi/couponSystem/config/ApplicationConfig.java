@@ -1,5 +1,7 @@
 package com.maorzehavi.couponSystem.config;
 
+import com.maorzehavi.couponSystem.job.ExpiredCouponRemover;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,15 +13,23 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class ApplicationConfig {
+
+    private final ExpiredCouponRemover expiredCouponRemover;
     @Qualifier("userDetailsServiceImpl")
     private final UserDetailsService userDetailsService;
 
-    public ApplicationConfig(@Lazy UserDetailsService userDetailsService) {
+    public ApplicationConfig(ExpiredCouponRemover expiredCouponRemover,
+                             @Lazy UserDetailsService userDetailsService) {
+        this.expiredCouponRemover = expiredCouponRemover;
         this.userDetailsService = userDetailsService;
+    }
+
+    @PostConstruct
+    private void init() {
+        expiredCouponRemover.removeExpiredCoupons();
     }
 
     @Bean
