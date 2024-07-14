@@ -26,7 +26,7 @@ spring:
             required: true
 
 jwt:
-  secret: 576D5A7134743777217A25432646294A404E635266556A586E3272357538782F
+  secret: ${JWT_KEY}
 server:
   error:
     include-message: always
